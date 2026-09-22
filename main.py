@@ -10,19 +10,31 @@ for file_path in DOCUMENTS_DIR.glob("*.txt"):
         encoding="utf-8"
     )
 
-print("Available documents:")
-for filename in documents:
-    print(f"- {filename}")
+document_options = list(documents.keys())
 
-document_choice = input("\nWhich document do you want to use? ")
+print("\n=== Customer Service Assistant ===")
+print("\nAvailable documents:")
 
-if document_choice not in documents:
-    print("Document not found.")
-    exit()
+for number, filename in enumerate(document_options, start=1):
+    display_name = filename.replace("_", " ").replace(".txt", "").title()
+    print(f"{number}. {display_name}")
+
+while True:
+    try:
+        choice = int(input("\nChoose a document: "))
+
+        if 1 <= choice <= len(document_options):
+            break
+
+        print("Please choose a valid document number.")
+
+    except ValueError:
+        print("Please enter a number.")
+
+selected_filename = document_options[choice - 1]
+selected_document = documents[selected_filename]
 
 question = input("What is your question? ")
-
-selected_document = documents[document_choice]
 
 prompt = f"""
 You are a customer service assistant.
@@ -49,8 +61,13 @@ response = ollama.chat(
             "role": "user",
             "content": prompt
         }
-    ]
+    ],
+    stream=True
 )
 
 print("\nAssistant:")
-print(response["message"]["content"])
+
+for chunk in response:
+    print(chunk["message"]["content"], end="", flush=True)
+
+print()
