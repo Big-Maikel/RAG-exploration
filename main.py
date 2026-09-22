@@ -10,9 +10,19 @@ for file_path in DOCUMENTS_DIR.glob("*.txt"):
         encoding="utf-8"
     )
 
-selected_document = documents["return_policy.txt"]
+print("Available documents:")
+for filename in documents:
+    print(f"- {filename}")
 
-question = "How long can I return an electronic item?"
+document_choice = input("\nWhich document do you want to use? ")
+
+if document_choice not in documents:
+    print("Document not found.")
+    exit()
+
+question = input("What is your question? ")
+
+selected_document = documents[document_choice]
 
 prompt = f"""
 You are a customer service assistant.
@@ -22,6 +32,8 @@ provided in the document below.
 
 If the answer cannot be found in the document, say:
 "I don't know based on the provided policy."
+
+Clearly mention which document you used.
 
 DOCUMENT:
 {selected_document}
@@ -40,4 +52,5 @@ response = ollama.chat(
     ]
 )
 
+print("\nAssistant:")
 print(response["message"]["content"])
