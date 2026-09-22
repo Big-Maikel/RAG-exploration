@@ -10,37 +10,81 @@ for file_path in DOCUMENTS_DIR.glob("*.txt"):
         encoding="utf-8"
     )
 
-document_options = list(documents.keys())
+document_keywords = {
+    "return_policy.txt": [
+        "return",
+        "refund",
+        "exchange",
+        "returning",
+        "damaged",
+        "defective"
+    ],
+
+    "delivery_policy.txt": [
+        "delivery",
+        "shipping",
+        "package",
+        "carrier",
+        "shipment",
+        "deliver"
+    ],
+
+    "loyalty_program.txt": [
+        "loyalty",
+        "points",
+        "reward",
+        "birthday",
+        "membership",
+        "member",
+        "bonus"
+    ]
+}
+
+def find_relevant_documents(question):
+    question = question.lower()
+
+    relevant_documents = []
+
+    for document, keywords in document_keywords.items():
+        score = 0
+
+        for keyword in keywords:
+            if keyword in question:
+                score += 1
+
+        if score > 0:
+            relevant_documents.append(document)
+
+    return relevant_documents
 
 print("\n=== Customer Service Assistant ===")
-print("\nAvailable documents:")
 
-for number, filename in enumerate(document_options, start=1):
-    display_name = filename.replace("_", " ").replace(".txt", "").title()
-    print(f"{number}. {display_name}")
+question = input("\nWhat is your question? ")
 
-while True:
-    try:
-        choice = int(input("\nChoose a document: "))
+relevant_documents = find_relevant_documents(question)
 
-        if 1 <= choice <= len(document_options):
-            break
+if len(relevant_documents) == 0:
+    print(
+        "\nI'm sorry, I can only answer questions about "
+        "our returns, delivery, or loyalty program."
+    )
+    exit()
 
-        print("Please choose a valid document number.")
+if len(relevant_documents) > 1:
+    print(
+        "\nYour question is too complex and spans multiple "
+        "policy areas. Please ask about one topic at a time."
+    )
+    exit()
 
-    except ValueError:
-        print("Please enter a number.")
-
-selected_filename = document_options[choice - 1]
+selected_filename = relevant_documents[0]
 selected_document = documents[selected_filename]
-
-question = input("What is your question? ")
 
 prompt = f"""
 You are a customer service assistant.
 
 Answer the customer's question using ONLY the information
-provided in the document below.
+provided in the document below and dont make-up things that aren't mentioned in the document.
 
 If the answer cannot be found in the document, say:
 "I don't know based on the provided policy."
@@ -68,4 +112,11 @@ print("\nAssistant:")
 for chunk in response:
     print(chunk["message"]["content"], end="", flush=True)
 
-print(f"\n\nDocument used: {selected_filename}")
+display_name = (
+    selected_filename
+    .replace("_", " ")
+    .replace(".txt", "")
+    .title()
+)
+
+print(f"\n\nDocument used: {display_name}")
