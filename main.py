@@ -45,8 +45,6 @@ provided in the document below.
 If the answer cannot be found in the document, say:
 "I don't know based on the provided policy."
 
-Clearly mention which document you used.
-
 DOCUMENT:
 {selected_document}
 
@@ -70,4 +68,4 @@ print("\nAssistant:")
 for chunk in response:
     print(chunk["message"]["content"], end="", flush=True)
 
-print()
+print(f"\n\nDocument used: {selected_filename}")
