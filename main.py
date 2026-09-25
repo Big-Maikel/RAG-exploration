@@ -10,6 +10,7 @@ for file_path in DOCUMENTS_DIR.glob("*.txt"):
         encoding="utf-8"
     )
 
+
 document_keywords = {
     "return_policy.txt": [
         "return",
@@ -40,10 +41,12 @@ document_keywords = {
     ]
 }
 
+
 def find_relevant_documents(question):
     question = question.lower()
 
     relevant_documents = []
+    document_scores = {}
 
     for document, keywords in document_keywords.items():
         score = 0
@@ -52,16 +55,19 @@ def find_relevant_documents(question):
             if keyword in question:
                 score += 1
 
+        document_scores[document] = score
+
         if score > 0:
             relevant_documents.append(document)
 
-    return relevant_documents
+    return relevant_documents, document_scores
+
 
 print("\n=== Customer Service Assistant ===")
 
 question = input("\nWhat is your question? ")
 
-relevant_documents = find_relevant_documents(question)
+relevant_documents, document_scores = find_relevant_documents(question)
 
 if len(relevant_documents) == 0:
     print(
@@ -80,11 +86,19 @@ if len(relevant_documents) > 1:
 selected_filename = relevant_documents[0]
 selected_document = documents[selected_filename]
 
+selected_score = document_scores[selected_filename]
+
+total_score = sum(document_scores.values())
+
+confidence = (selected_score / total_score) * 100
+
+
 prompt = f"""
 You are a customer service assistant.
 
 Answer the customer's question using ONLY the information
-provided in the document below and dont make-up things that aren't mentioned in the document.
+provided in the document below and don't make up things
+that aren't mentioned in the document.
 
 If the answer cannot be found in the document, say:
 "I don't know based on the provided policy."
@@ -95,6 +109,7 @@ DOCUMENT:
 CUSTOMER QUESTION:
 {question}
 """
+
 
 response = ollama.chat(
     model="llama3.2",
@@ -107,10 +122,12 @@ response = ollama.chat(
     stream=True
 )
 
+
 print("\nAssistant:")
 
 for chunk in response:
     print(chunk["message"]["content"], end="", flush=True)
+
 
 display_name = (
     selected_filename
@@ -119,4 +136,5 @@ display_name = (
     .title()
 )
 
-print(f"\n\nDocument used: {display_name}")
+print(f"\n\nRetrieval confidence: {confidence:.0f}%")
+print(f"Document used: {display_name}")
