@@ -8,7 +8,7 @@ text3 = "Earn 1 point for every $1 spent"
 
 def get_embedding(text):
     response = ollama.embed(
-        model="nomic-embed-text",
+        model="all-minilm",
         input=text
     )
 
@@ -31,5 +31,5 @@ embedding3 = get_embedding(text3)
 similarity_12 = cosine_similarity(embedding1, embedding2)
 similarity_13 = cosine_similarity(embedding1, embedding3)
 
-print(f"Question ↔ Shipping: {similarity_12:.4f}")
+print(f"Question ↔ Delivery: {similarity_12:.4f}")
 print(f"Question ↔ Loyalty:  {similarity_13:.4f}")
