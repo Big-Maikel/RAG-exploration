@@ -38,11 +38,6 @@ for chunk in chunks:
     chunk["embedding"] = get_embedding(chunk["text"])
 
 
-question = "How much does express shipping cost?"
-
-question_embedding = get_embedding(question)
-
-
 def cosine_similarity(vector_a, vector_b):
     import numpy as np
 
@@ -54,24 +49,34 @@ def cosine_similarity(vector_a, vector_b):
     )
 
 
-for chunk in chunks:
-    chunk["similarity"] = cosine_similarity(
-        question_embedding,
-        chunk["embedding"]
+print("\n=== Customer Service Assistant ===")
+print("Type 'exit' to stop the assistant.")
+
+while True:
+
+    question = input("\nYou: ")
+
+    if question.lower() == "exit":
+        print("\nGoodbye!")
+        break
+
+    question_embedding = get_embedding(question)
+
+    for chunk in chunks:
+        chunk["similarity"] = cosine_similarity(
+            question_embedding,
+            chunk["embedding"]
+        )
+
+    chunks = sorted(
+        chunks,
+        key=lambda chunk: chunk["similarity"],
+        reverse=True
     )
 
+    best_chunk = chunks[0]
 
-chunks = sorted(
-    chunks,
-    key=lambda chunk: chunk["similarity"],
-    reverse=True
-)
-
-
-best_chunk = chunks[0]
-
-
-prompt = f"""
+    prompt = f"""
 You are a customer service assistant.
 
 Answer the customer's question using ONLY the information
@@ -88,23 +93,18 @@ CUSTOMER QUESTION:
 {question}
 """
 
+    response = ollama.chat(
+        model="llama3.2",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    )
 
-response = ollama.chat(
-    model="llama3.2",
-    messages=[
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
-)
+    print("\nBest chunk:")
+    print(best_chunk["text"])
 
-
-print("\nQuestion:")
-print(question)
-
-print("\nBest chunk:")
-print(best_chunk["text"])
-
-print("\nAssistant:")
-print(response["message"]["content"])
+    print("\nAssistant:")
+    print(response["message"]["content"])
